@@ -11,7 +11,6 @@
   .card{max-width:1000px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:18px;}
   h2{margin:0 0 10px 0;text-align:center}
 
-  /* ✅ Header + Logo */
   .header{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:8px}
   .logo{width:110px;max-width:40vw;height:auto;display:block}
   .brandLine{font-size:13px;color:#666;text-align:center;margin-top:-2px}
@@ -31,13 +30,10 @@
   .small{font-size:12px;color:#777;text-align:center;margin-top:8px}
   .hidden{display:none}
 
-  /* ✅ Print styles (show logo + hide controls) */
   @media print{
     body{background:#fff;padding:0}
     .card{box-shadow:none;border-radius:0;max-width:none;margin:0;padding:0}
     .actions, .row, .small{display:none !important;}
-    .note{margin-top:6px}
-    table{margin-top:10px}
     th{position:static}
     .logo{width:120px}
     @page{margin:12mm;}
@@ -48,7 +44,6 @@
 <body>
   <div class="card">
 
-    <!-- ✅ Logo Header -->
     <div class="header">
       <img class="logo" src="logo.png" alt="SMOU Logo" />
       <div class="brandLine">SMOU GROUP</div>
@@ -90,7 +85,7 @@ const searchInput = document.getElementById("search");
 
 const norm = s => (s ?? "")
   .toString()
-  .replace(/[\u064B-\u0652]/g, "") // remove Arabic diacritics
+  .replace(/[\u064B-\u0652]/g, "")
   .trim()
   .replace(/\s+/g, " ")
   .toLowerCase();
@@ -138,7 +133,6 @@ function parseCSV(text){
   return {headers, rows};
 }
 
-/* ✅ اكتشاف عمود المنطقة */
 function detectRegionColumn(){
   const candidates = [
     "المنطقة",
@@ -156,14 +150,7 @@ function detectRegionColumn(){
     const found = headers.find(h => h.trim() === c);
     if (found) return found;
   }
-  const fuzzyAr = headers.find(h => h.includes("منطق"));
-  if (fuzzyAr) return fuzzyAr;
-
-  const fuzzyEn = headers.find(h => {
-    const t = h.toLowerCase();
-    return t.includes("region") || t.includes("area") || t.includes("zone") || t.includes("location");
-  });
-  return fuzzyEn || null;
+  return headers.find(h => h.includes("منطق")) || null;
 }
 
 function escapeHtml(str){
@@ -189,57 +176,44 @@ function search(){
   const q = norm(searchInput.value);
 
   if (!data.length){
-    info.textContent = "⚠️ البيانات غير جاهزة بعد. انتظر لحظة...";
+    info.textContent = "⚠️ البيانات غير جاهزة بعد.";
     renderTable([]);
     return;
   }
 
   if (!SEARCH_COL){
-    info.textContent = "⚠️ لم أتمكن من تحديد عمود (المنطقة) داخل ملف البيانات.";
+    info.textContent = "⚠️ لم أتمكن من تحديد عمود المنطقة.";
     renderTable([]);
     return;
   }
 
   if (!q){
-    info.innerHTML = `البيانات جاهزة ✔️ اكتب اسم المنطقة للبحث. <span class="pill">عمود البحث: ${escapeHtml(SEARCH_COL)}</span>`;
+    info.innerHTML = `اكتب اسم المنطقة للبحث. <span class="pill">عمود البحث: ${escapeHtml(SEARCH_COL)}</span>`;
     renderTable([]);
     return;
   }
 
   const res = data.filter(r => norm(r[SEARCH_COL]).includes(q));
-  if (!res.length){
-    info.innerHTML = `لا توجد نتائج. <span class="pill">عمود البحث: ${escapeHtml(SEARCH_COL)}</span>`;
-    renderTable([]);
-    return;
-  }
-
-  info.innerHTML = `عدد النتائج: ${res.length} <span class="pill">عمود البحث: ${escapeHtml(SEARCH_COL)}</span>`;
+  info.innerHTML = res.length
+    ? `عدد النتائج: ${res.length}`
+    : "لا توجد نتائج";
   renderTable(res);
 }
 
-/* ✅ تحميل الملف تلقائيًا + منع الكاش */
-fetch("families.csv?v=" + Date.now())
+/* ✅ تحميل الملف من area.csv */
+fetch("area.csv?v=" + Date.now())
   .then(r => {
-    if (!r.ok) throw new Error("families.csv not found");
+    if (!r.ok) throw new Error("area.csv not found");
     return r.text();
   })
   .then(text => {
     const parsed = parseCSV(text);
     data = parsed.rows;
     SEARCH_COL = detectRegionColumn();
-
-    if (!data.length){
-      info.textContent = "⚠️ ملف البيانات فارغ أو غير مقروء. احفظه CSV (UTF-8) من Excel.";
-      return;
-    }
-    if (!SEARCH_COL){
-      info.textContent = "⚠️ تم تحميل الملف لكن لم أجد عمود المنطقة. راجع عناوين الأعمدة في الصف الأول.";
-      return;
-    }
     search();
   })
   .catch(err => {
-    info.textContent = "⚠️ تعذر تحميل ملف البيانات (families.csv). تأكد أنه مرفوع بجانب index.html.";
+    info.textContent = "⚠️ تعذر تحميل ملف area.csv.";
     console.error(err);
   });
 
@@ -248,7 +222,6 @@ searchInput.addEventListener("input", search);
 document.getElementById("clearBtn").addEventListener("click", ()=>{
   searchInput.value = "";
   search();
-  searchInput.focus();
 });
 
 document.getElementById("printBtn").addEventListener("click", ()=>{
