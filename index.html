@@ -8,7 +8,41 @@
 <style>
   :root{--brand:#0f5c6e;}
   body{font-family: Tahoma, Arial, sans-serif; background:#f7f7f7; padding:20px; margin:0;}
-  .card{max-width:1000px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:18px;}
+
+  .card{
+    max-width:1000px;
+    margin:0 auto;
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+    padding:18px;
+    position:relative;
+  }
+
+  /* ===== Back Button ===== */
+  .back-btn{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-size:20px;
+    font-weight:bold;
+    color:#fff;
+    background:var(--brand);
+    box-shadow:0 6px 18px rgba(0,0,0,.18);
+    transition:all .25s ease;
+  }
+  .back-btn:hover{
+    background:#0b4c59;
+    transform:translateY(-3px);
+  }
+
   h2{margin:0 0 10px 0;text-align:center}
 
   .header{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:8px}
@@ -16,14 +50,34 @@
   .brandLine{font-size:13px;color:#666;text-align:center;margin-top:-2px}
 
   .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center}
-  input[type="text"]{padding:12px 14px;min-width:280px;border:1px solid #ddd;border-radius:10px;font-size:16px;outline:none}
-  input[type="text"]:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,92,110,.15)}
+  input[type="text"]{
+    padding:12px 14px;
+    min-width:280px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:16px;
+    outline:none
+  }
+  input[type="text"]:focus{
+    border-color:var(--brand);
+    box-shadow:0 0 0 3px rgba(15,92,110,.15)
+  }
+
   .note{color:#666;margin-top:10px;text-align:center}
-  .pill{display:inline-block;background:rgba(15,92,110,.08);color:var(--brand);padding:6px 10px;border-radius:999px;font-size:13px}
+  .pill{
+    display:inline-block;
+    background:rgba(15,92,110,.08);
+    color:var(--brand);
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:13px
+  }
+
   table{width:100%;border-collapse:collapse;margin-top:14px;background:#fff}
   th,td{border:1px solid #e2e2e2;padding:10px;text-align:right;vertical-align:top}
   th{background:var(--brand);color:#fff;position:sticky;top:0}
   tr:nth-child(even){background:#fafafa}
+
   .actions{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
   button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-size:14px}
   .btn2{background:#eee}
@@ -33,7 +87,7 @@
   @media print{
     body{background:#fff;padding:0}
     .card{box-shadow:none;border-radius:0;max-width:none;margin:0;padding:0}
-    .actions, .row, .small{display:none !important;}
+    .actions, .row, .small, .back-btn{display:none !important;}
     th{position:static}
     .logo{width:120px}
     @page{margin:12mm;}
@@ -43,6 +97,9 @@
 
 <body>
   <div class="card">
+
+    <!-- زر الرجوع -->
+    <a href="https://portal.smougroup.com/" class="back-btn" title="الرجوع">←</a>
 
     <div class="header">
       <img class="logo" src="logo.png" alt="SMOU Logo" />
@@ -134,18 +191,7 @@ function parseCSV(text){
 }
 
 function detectRegionColumn(){
-  const candidates = [
-    "المنطقة",
-    "منطقة",
-    "Area",
-    "area",
-    "Region",
-    "region",
-    "Location",
-    "location",
-    "Zone",
-    "zone"
-  ];
+  const candidates = ["المنطقة","منطقة","Area","area","Region","region","Location","location","Zone","zone"];
   for (const c of candidates){
     const found = headers.find(h => h.trim() === c);
     if (found) return found;
@@ -194,13 +240,10 @@ function search(){
   }
 
   const res = data.filter(r => norm(r[SEARCH_COL]).includes(q));
-  info.innerHTML = res.length
-    ? `عدد النتائج: ${res.length}`
-    : "لا توجد نتائج";
+  info.innerHTML = res.length ? `عدد النتائج: ${res.length}` : "لا توجد نتائج";
   renderTable(res);
 }
 
-/* ✅ تحميل الملف من area.csv */
 fetch("area.csv?v=" + Date.now())
   .then(r => {
     if (!r.ok) throw new Error("area.csv not found");
@@ -212,9 +255,8 @@ fetch("area.csv?v=" + Date.now())
     SEARCH_COL = detectRegionColumn();
     search();
   })
-  .catch(err => {
+  .catch(() => {
     info.textContent = "⚠️ تعذر تحميل ملف area.csv.";
-    console.error(err);
   });
 
 searchInput.addEventListener("input", search);
